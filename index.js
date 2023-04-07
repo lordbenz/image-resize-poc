@@ -33,14 +33,23 @@ fs.readdirSync(inputPath).forEach(file => {
   const width = parseInt(outputWidth) * (isRetina ? 2 : 1);
   const height = parseInt(outputHeight) * (isRetina ? 2 : 1);
 
-  // Read and resize image
-  sharp(filePath)
-    .resize(width, height)
-    .toFile(path.join(outputFolder, file), (err, info) => {
-      if (err) {
-        console.error(`Error resizing ${file}: ${err.message}`);
-      } else {
-        console.log(`Resized ${file} to ${info.width}x${info.height}`);
-      }
-    });
+  // Read image dimensions
+  sharp(filePath).metadata().then(metadata => {
+    // Skip if image already has desired dimensions
+    if (metadata.width === width && metadata.height === height) {
+      console.log(`Skipping ${file} (already resized)`);
+      return;
+    }
+
+    // Resize image
+    sharp(filePath)
+      .resize(width, height)
+      .toFile(path.join(outputFolder, file), (err, info) => {
+        if (err) {
+          console.error(`Error resizing ${file}: ${err.message}`);
+        } else {
+          console.log(`Resized ${file} to ${info.width}x${info.height}`);
+        }
+      });
+  });
 });
